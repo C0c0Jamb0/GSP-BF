@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import networkx as nx
 from scipy.sparse.linalg import eigsh
+from skimage.util import random_noise
 
 # Path to the image
 path = "C:/Users/Edgar/Desktop/Uni/Seminar/Figures/images/"
@@ -14,8 +15,10 @@ original_img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 if original_img is None:
     raise ValueError("Image not found or unable to load.")
 
-# Normalize the image so that 0 is black and 1 is white
-normalized_img = original_img / 255.0
+img_gaussian_noise = random_noise(original_img, mode='gaussian', mean=0, var=0.005)
+
+normalized_img = img_gaussian_noise.astype(np.float32)  # Convert to float32 for normalization
+normalized_img = (normalized_img - np.min(normalized_img)) / (np.max(normalized_img) - np.min(normalized_img))
 
 # Get the number of rows and columns
 rows, cols = normalized_img.shape
@@ -28,8 +31,8 @@ print(f"Number of columns: {cols}")
 G = nx.grid_2d_graph(rows, cols)
 
 # Define sigma values for spatial and intensity components
-sigma_d = 1.0  # Spatial Gaussian standard deviation
-sigma_r = 0.1  # Intensity Gaussian standard deviation
+sigma_d = 0.1  # Spatial Gaussian standard deviation
+sigma_r = 0.05  # Intensity Gaussian standard deviation
 
 # Define the weight function based on the given formula
 def weight_function(node1, node2):
@@ -58,7 +61,7 @@ for (u, v) in G.edges():
 L = nx.normalized_laplacian_matrix(G, weight='weight')
 
 # Compute a smaller number of eigenvalues and eigenvectors using a sparse eigenvalue solver
-num_eigenvalues = 100  # Number of eigenvalues to compute
+num_eigenvalues = 500  # Number of eigenvalues to compute
 eigenvalues, eigenvectors = eigsh(L, k=num_eigenvalues, which='SM')
 
 # Print the eigenvalues
@@ -80,6 +83,7 @@ filtered_image = filtered_image_vector.reshape((rows, cols))
 
 # Display the original and filtered images using OpenCV (optional)
 cv2.imshow("Original Image", original_img)
+cv2.imshow("noise Image", img_gaussian_noise)
 cv2.imshow("Filtered Image", (filtered_image * 255).astype(np.uint8))  # Scale the filtered image for display
 cv2.waitKey(0)
 cv2.destroyAllWindows()
