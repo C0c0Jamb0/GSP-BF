@@ -3,7 +3,9 @@ import cv2
 from skimage.util import random_noise
 import time
 import networkx as nx
-from scipy.sparse.linalg import eigsh
+from cupyx.scipy.sparse.linalg import eigsh
+import cupy as cp
+import matplotlib.pyplot as plt
 
 # Path to the image
 path = "C:/Users/Edgar/Desktop/Uni/Seminar/Figures/images/"
@@ -58,12 +60,15 @@ for (u, v) in G.edges():
 # Compute the weighted graph Laplacian
 L = nx.normalized_laplacian_matrix(G, weight='weight')
 
+L_cupy = cp.sparse.csr_matrix(L)
+
+
 # Compute a smaller number of eigenvalues and eigenvectors using a sparse eigenvalue solver
-num_eigenvalues = 20  # Number of eigenvalues to compute
+num_eigenvalues = 2000  # Number of eigenvalues to compute
 
 # Start the timer
 start_time = time.time()
-eigenvalues, eigenvectors = eigsh(L, k=num_eigenvalues, which='SA')
+eigenvalues, eigenvectors = eigsh(L_cupy, k=num_eigenvalues, which='SA')
 
 # End the timer
 end_time = time.time()
@@ -79,8 +84,10 @@ print(f"Time taken to compute eigenvalues: {elapsed_time:.2f} seconds")
 # Reshape the normalized image into a vector
 image_vector = normalized_img.flatten()
 
+image_vector_cupy = cp.asarray(image_vector)
+
 # Compute the Graph Fourier Transform (GFT)
-gft = eigenvectors.T @ image_vector
+gft = eigenvectors.T @ image_vector_cupy
 
 # Apply the filter in the spectral domain
 h_BF = 1 - eigenvalues
@@ -88,11 +95,28 @@ filtered_gft = h_BF * gft
 
 # Compute the inverse GFT to get the filtered image back in the spatial domain
 filtered_image_vector = eigenvectors @ filtered_gft
-filtered_image = filtered_image_vector.reshape((rows, cols))
+filtered_image = filtered_image_vector.reshape((rows, cols)).get()
+
+filtered_image = (filtered_image * 255).astype(np.uint8)
 
 # Display the original and filtered images using OpenCV (optional)
-cv2.imshow("Original Image", original_img)
-cv2.imshow("Noise Image", normalized_img)
-cv2.imshow("Filtered Image", (filtered_image * 255).astype(np.uint8))  # Scale the filtered image for display
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+plt.figure(figsize=(16, 12))
+
+plt.subplot(2, 3, 1)
+plt.title("Original Image", fontsize=16)
+plt.imshow(original_img, cmap='gray')
+plt.axis('off')
+
+plt.subplot(2, 3, 2)
+plt.title("Gaussian Noise", fontsize=16)
+plt.imshow(img_gaussian_noise, cmap='gray')
+plt.axis('off')
+
+plt.subplot(2, 3, 3)
+plt.title("Bilateral Filter", fontsize=16)
+plt.imshow(filtered_image, cmap='gray')
+plt.axis('off')
+
+save_path = "C:/Users/Edgar/Desktop/Uni/Seminar/Figures/"
+plt.savefig(save_path + "comparison_gsp_bf.svg")
+plt.show()
