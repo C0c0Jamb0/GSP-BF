@@ -6,9 +6,7 @@ import networkx as nx
 from cupyx.scipy.sparse.linalg import eigsh
 import cupy as cp
 import matplotlib.pyplot as plt
-
-path = "C:/Users/Edgar/Desktop/Uni/Seminar/Figures/images/"
-image_path = path + 'bear4.png'
+from config import image_path, save_path
 
 original_img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
@@ -114,6 +112,6 @@ plt.axis('off')
 #plt.title("Zoomed Bilateral Filter", fontsize=16)
 #plt.axis('off')
 
-#save_path = "..."
+
 #plt.savefig(save_path + "...") #save in .svg
 plt.show()

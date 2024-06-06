@@ -4,9 +4,8 @@ from skimage.util import random_noise
 import time
 import networkx as nx
 from scipy.sparse.linalg import eigsh
+from config import image_path, save_path
 
-path = "..."
-image_path = path + '...'
 
 original_img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
