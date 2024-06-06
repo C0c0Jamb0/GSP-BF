@@ -7,8 +7,8 @@ from cupyx.scipy.sparse.linalg import eigsh
 import cupy as cp
 import matplotlib.pyplot as plt
 
-path = "..."
-image_path = path + '...'
+path = "C:/Users/Edgar/Desktop/Uni/Seminar/Figures/images/"
+image_path = path + 'bear4.png'
 
 original_img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
@@ -54,7 +54,7 @@ L_cupy = cp.sparse.csr_matrix(L)
 
 
 # Compute a smaller number of eigenvalues and eigenvectors using a sparse eigenvalue solver
-num_eigenvalues = 10 
+num_eigenvalues = 1 
 
 start_time = time.time()
 eigenvalues, eigenvectors = eigsh(L_cupy, k=num_eigenvalues, which='SA')
@@ -83,7 +83,7 @@ filtered_gft = h_BF * gft
 filtered_image_vector = eigenvectors @ filtered_gft
 filtered_image = filtered_image_vector.reshape((rows, cols)).get()
 
-filtered_image = (filtered_image * 255).astype(np.uint8)
+#filtered_image = (filtered_image * 255).astype(np.uint8)
 
 # Display the original and filtered images
 x1, x2, y1, y2 = 110, 190, 50, 110
@@ -104,16 +104,16 @@ plt.title("Bilateral Filter", fontsize=16)
 plt.imshow(filtered_image, cmap='gray')
 plt.axis('off')
 
-plt.subplot(2, 3, 4)
-plt.imshow(filtered_image[y1:y2, x1:x2], cmap='gray')
-plt.title("Zoomed Bilateral Filter", fontsize=16)
-plt.axis('off')
+#plt.subplot(2, 3, 4)
+#plt.imshow(filtered_image[y1:y2, x1:x2], cmap='gray')
+#plt.title("Zoomed Bilateral Filter", fontsize=16)
+#plt.axis('off')
+#
+#plt.subplot(2, 3, 5)
+#plt.imshow(original_img[y1:y2, x1:x2], cmap='gray')
+#plt.title("Zoomed Bilateral Filter", fontsize=16)
+#plt.axis('off')
 
-plt.subplot(2, 3, 5)
-plt.imshow(original_img[y1:y2, x1:x2], cmap='gray')
-plt.title("Zoomed Bilateral Filter", fontsize=16)
-plt.axis('off')
-
-save_path = "..."
-plt.savefig(save_path + "...") #save in .svg
+#save_path = "..."
+#plt.savefig(save_path + "...") #save in .svg
 plt.show()
